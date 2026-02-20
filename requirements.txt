@@ -1,0 +1,13 @@
+# Sensitive Data Protector - Dependencies
+
+# OpenAI Python SDK
+openai>=1.0.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# HTTP client for Ollama API (local LLM)
+requests>=2.28.0
+
+# Web UI
+flask>=3.0.0

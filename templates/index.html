@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensitive Data Protector - Privacy Gateway Demo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ Sensitive Data Protector</h1>
+            <p class="subtitle">Privacy-First AI Architecture Demo</p>
+            <p class="description">See how sensitive data is protected before sending to AI APIs</p>
+        </header>
+
+        <!-- Status Indicators -->
+        <div class="status-bar">
+            <div class="status-item {{ 'active' if openai_available else 'inactive' }}">
+                <span class="status-dot"></span>
+                <span>OpenAI API</span>
+            </div>
+            <div class="status-item {{ 'active' if ollama_status.ollama_running else 'inactive' }}">
+                <span class="status-dot"></span>
+                <span>Ollama</span>
+            </div>
+            <div class="status-item {{ 'active' if ollama_status.model_available else 'inactive' }}">
+                <span class="status-dot"></span>
+                <span>Local LLM</span>
+            </div>
+        </div>
+
+        <!-- Input Section -->
+        <section class="step-section input-section">
+            <div class="step-header">
+                <span class="step-number">INPUT</span>
+                <h2>Enter Text with Sensitive Data</h2>
+            </div>
+            <div class="step-content">
+                <textarea id="userInput" placeholder="Enter text containing sensitive information like names, credit cards, SSN, emails, phone numbers, addresses...">Hi, my name is Sarah Johnson and I need financial advice.
+My credit card 4111-2222-3333-4444 was charged $500 yesterday.
+My SSN is 987-65-4321 and email is sarah.johnson@example.com.
+You can call me at (555) 987-6543 or visit me at 456 Oak Avenue, Boston, MA 02101.
+Can you help me understand if this charge is legitimate?</textarea>
+                
+                <div class="options">
+                    <label class="toggle">
+                        <input type="checkbox" id="useLocalLLM" {{ 'checked' if ollama_status.model_available else '' }}>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Use Local LLM (Ollama) for PII Detection</span>
+                    </label>
+                    <label class="toggle">
+                        <input type="checkbox" id="callOpenAI" checked>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Call OpenAI API</span>
+                    </label>
+                </div>
+                
+                <button id="processBtn" class="btn-primary">
+                    <span class="btn-icon">🔒</span>
+                    Process & Protect Data
+                </button>
+            </div>
+        </section>
+
+        <!-- Results Container -->
+        <div id="results" class="results-container hidden">
+            
+            <!-- Step 1: PII Detection -->
+            <section class="step-section detection-section">
+                <div class="step-header">
+                    <span class="step-number">STEP 1</span>
+                    <h2>🔍 PII Detection</h2>
+                    <span class="step-badge local">Processed Locally</span>
+                </div>
+                <div class="step-content">
+                    <p class="step-description">Sensitive data identified in your input:</p>
+                    <div id="detectedPII" class="pii-grid"></div>
+                </div>
+            </section>
+
+            <!-- Step 2: Masking -->
+            <section class="step-section masking-section">
+                <div class="step-header">
+                    <span class="step-number">STEP 2</span>
+                    <h2>🎭 Data Masking</h2>
+                    <span class="step-badge local">Processed Locally</span>
+                </div>
+                <div class="step-content">
+                    <div class="comparison">
+                        <div class="comparison-side original">
+                            <h3>🔴 Original (Contains PII)</h3>
+                            <div id="originalText" class="text-box danger"></div>
+                        </div>
+                        <div class="comparison-arrow">→</div>
+                        <div class="comparison-side masked">
+                            <h3>🟢 Masked (Safe to Send)</h3>
+                            <div id="maskedText" class="text-box safe"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 3: Mapping -->
+            <section class="step-section mapping-section">
+                <div class="step-header">
+                    <span class="step-number">STEP 3</span>
+                    <h2>🗺️ PII Mapping</h2>
+                    <span class="step-badge local">Stored Locally Only</span>
+                </div>
+                <div class="step-content">
+                    <p class="step-description">This mapping never leaves your machine:</p>
+                    <div id="mappingTable" class="mapping-table"></div>
+                </div>
+            </section>
+
+            <!-- Step 4: AI Response -->
+            <section class="step-section ai-section">
+                <div class="step-header">
+                    <span class="step-number">STEP 4</span>
+                    <h2>🤖 AI Response</h2>
+                    <span class="step-badge cloud">External API</span>
+                </div>
+                <div class="step-content">
+                    <p class="step-description">OpenAI only sees placeholders, not your real data:</p>
+                    <div id="aiResponseMasked" class="text-box ai-response"></div>
+                </div>
+            </section>
+
+            <!-- Step 5: Unmasking -->
+            <section class="step-section final-section">
+                <div class="step-header">
+                    <span class="step-number">STEP 5</span>
+                    <h2>✨ Final Response</h2>
+                    <span class="step-badge local">Unmasked Locally</span>
+                </div>
+                <div class="step-content">
+                    <p class="step-description">Response restored with your original data:</p>
+                    <div id="aiResponseFinal" class="text-box final-response"></div>
+                </div>
+            </section>
+
+            <!-- Summary -->
+            <section class="step-section summary-section">
+                <div class="step-header">
+                    <span class="step-number">SUMMARY</span>
+                    <h2>📊 Privacy Protection Results</h2>
+                </div>
+                <div class="step-content">
+                    <div class="summary-grid">
+                        <div class="summary-card local-card">
+                            <h3>🏠 Stayed Local</h3>
+                            <ul id="localList">
+                                <li>Your actual PII data</li>
+                                <li>The mapping dictionary</li>
+                                <li>PII detection processing</li>
+                                <li>Final unmasking</li>
+                            </ul>
+                        </div>
+                        <div class="summary-card cloud-card">
+                            <h3>☁️ Sent to Cloud</h3>
+                            <ul>
+                                <li>Anonymized prompt only</li>
+                                <li>Generic placeholders</li>
+                                <li>No real PII exposed</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="success-message">
+                        <span class="success-icon">🔒</span>
+                        <span>Your sensitive data was protected! OpenAI never saw your real information.</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading" class="loading-overlay hidden">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <p id="loadingText">Processing...</p>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorMessage" class="error-message hidden"></div>
+
+        <footer>
+            <p>Sensitive Data Protector | Privacy-First AI Architecture</p>
+            <p class="footer-link">Learn more at <a href="#">Code to Cognition Blog</a></p>
+        </footer>
+    </div>
+
+    <script>
+        const processBtn = document.getElementById('processBtn');
+        const userInput = document.getElementById('userInput');
+        const useLocalLLM = document.getElementById('useLocalLLM');
+        const callOpenAI = document.getElementById('callOpenAI');
+        const results = document.getElementById('results');
+        const loading = document.getElementById('loading');
+        const loadingText = document.getElementById('loadingText');
+        const errorMessage = document.getElementById('errorMessage');
+
+        processBtn.addEventListener('click', async () => {
+            const input = userInput.value.trim();
+            if (!input) {
+                showError('Please enter some text to process.');
+                return;
+            }
+
+            // Show loading
+            loading.classList.remove('hidden');
+            results.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            
+            const isLocalLLM = useLocalLLM.checked;
+            loadingText.textContent = isLocalLLM 
+                ? 'Analyzing with Local LLM (this may take 30-60 seconds)...'
+                : 'Processing with regex patterns...';
+
+            try {
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        input: input,
+                        use_local_llm: isLocalLLM,
+                        call_openai: callOpenAI.checked
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+
+                displayResults(data);
+            } catch (err) {
+                showError('Failed to process: ' + err.message);
+            } finally {
+                loading.classList.add('hidden');
+            }
+        });
+
+        function displayResults(data) {
+            // Step 1: Detected PII
+            const piiGrid = document.getElementById('detectedPII');
+            piiGrid.innerHTML = data.detected_pii.map(pii => `
+                <div class="pii-item">
+                    <span class="pii-type">${pii.type}</span>
+                    <span class="pii-value">${escapeHtml(pii.value)}</span>
+                </div>
+            `).join('') || '<p class="no-pii">No PII detected</p>';
+
+            // Step 2: Original vs Masked
+            document.getElementById('originalText').innerHTML = highlightPII(
+                escapeHtml(data.original_input), 
+                data.detected_pii
+            );
+            document.getElementById('maskedText').innerHTML = highlightPlaceholders(
+                escapeHtml(data.masked_input)
+            );
+
+            // Step 3: Mapping Table
+            const mappingTable = document.getElementById('mappingTable');
+            const mappingEntries = Object.entries(data.mapping);
+            mappingTable.innerHTML = mappingEntries.map(([placeholder, value]) => `
+                <div class="mapping-row">
+                    <span class="mapping-placeholder">${escapeHtml(placeholder)}</span>
+                    <span class="mapping-arrow">→</span>
+                    <span class="mapping-value">${escapeHtml(value)}</span>
+                </div>
+            `).join('') || '<p>No mappings</p>';
+
+            // Step 4: AI Response (masked)
+            document.getElementById('aiResponseMasked').innerHTML = highlightPlaceholders(
+                escapeHtml(data.ai_response_masked || 'No AI response')
+            );
+
+            // Step 5: Final Response
+            document.getElementById('aiResponseFinal').innerHTML = highlightPII(
+                escapeHtml(data.ai_response_unmasked || 'No AI response'),
+                data.detected_pii
+            );
+
+            // Update summary
+            document.getElementById('localList').innerHTML = `
+                <li>✅ ${data.detected_pii.length} PII items protected</li>
+                <li>✅ ${mappingEntries.length} mappings stored locally</li>
+                <li>✅ PII detection (${useLocalLLM.checked ? 'Ollama' : 'Regex'})</li>
+                <li>✅ Final unmasking</li>
+            `;
+
+            // Show results
+            results.classList.remove('hidden');
+            
+            // Scroll to results
+            results.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function highlightPII(text, piiList) {
+            let result = text;
+            piiList.forEach(pii => {
+                const escaped = escapeRegex(pii.value);
+                result = result.replace(
+                    new RegExp(escaped, 'g'),
+                    `<mark class="highlight-pii">${escapeHtml(pii.value)}</mark>`
+                );
+            });
+            return result;
+        }
+
+        function highlightPlaceholders(text) {
+            return text.replace(
+                /\[([A-Z_]+_\d+)\]/g,
+                '<mark class="highlight-placeholder">[$1]</mark>'
+            );
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+            loading.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
