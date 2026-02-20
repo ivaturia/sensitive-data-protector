@@ -303,7 +303,3 @@ final = gateway.unmask(response.text, mapping)
 ## License
 
 MIT License - Feel free to use this in your own projects!
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
