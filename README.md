@@ -112,19 +112,35 @@ Get your OpenAI key at: https://platform.openai.com/api-keys
 
 ### 4. Run the Demo
 
-**Option A: Regex-based (Simple)**
+#### Web UI (Recommended)
+
+The web UI gives you a visual, step-by-step walkthrough of the mask/send/unmask flow.
+
 ```bash
-python main.py
+# Regex-only Web UI (no Ollama needed)
+python app_simple.py        # Opens at http://localhost:5002
+
+# Full Web UI (toggle between regex and local LLM)
+python app.py               # Opens at http://localhost:5001
 ```
 
-**Option B: Local LLM (Hybrid Architecture)**
+You can run both simultaneously on separate ports to compare the two approaches side by side.
+
+#### CLI
+
 ```bash
-# First, install and start Ollama: https://ollama.ai
+# Regex-based (simple)
+python main.py
+
+# Local LLM (hybrid architecture)
+python main_with_local_llm.py
+```
+
+**For the Local LLM option** (both CLI and Web UI), install and start Ollama first:
+```bash
+# Install Ollama from https://ollama.ai, then:
 ollama pull llama3.2
 ollama serve  # In a separate terminal
-
-# Then run the hybrid demo
-python main_with_local_llm.py
 ```
 
 ## Example Output
@@ -176,15 +192,22 @@ Hello Sarah Johnson! I can help you investigate the $500 charge on 4111-2222-333
 
 ```
 sensitive-data-protector/
-├── main.py                  # Demo app (regex-based PII detection)
-├── main_with_local_llm.py   # Demo app (local LLM PII detection)
+├── app.py                   # Web UI - full version (regex + local LLM toggle, port 5001)
+├── app_simple.py            # Web UI - regex only (port 5002)
+├── main.py                  # CLI demo (regex-based PII detection)
+├── main_with_local_llm.py   # CLI demo (local LLM PII detection)
 ├── privacy_gateway.py       # Regex-based PII masking module
 ├── local_llm_gateway.py     # Local LLM (Ollama) PII masking module
+├── templates/
+│   ├── index.html           # Web UI template (full version)
+│   └── index_simple.html    # Web UI template (regex only)
+├── static/
+│   └── style.css            # Web UI styles
 ├── requirements.txt         # Python dependencies
 ├── .env.example             # Example environment configuration
-├── .gitignore              # Git ignore rules
-├── LICENSE                 # MIT License
-└── README.md               # This file
+├── .gitignore               # Git ignore rules
+├── LICENSE                  # MIT License
+└── README.md                # This file
 ```
 
 ## How It Works
