@@ -73,7 +73,7 @@ The local LLM handles all sensitive data locally, while OpenAI is only used for 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/sensitive-data-protector.git
+git clone https://github.com/ivaturia/sensitive-data-protector.git
 cd sensitive-data-protector
 ```
 
@@ -296,7 +296,7 @@ final = gateway.unmask(response.text, mapping)
 
 ## Related Resources
 
-- [Protecting Sensitive Data When Using AI APIs](https://codetocognition.dev/protecting-sensitive-data-when-using-ai-apis/) - Blog post explaining the concepts
+- [Protecting Sensitive Data When Using AI APIs](https://sentientmindz.com/protecting-sensitive-data-when-using-ai-apis/) - Blog post explaining the concepts
 - [Microsoft Presidio](https://github.com/microsoft/presidio) - Production-grade PII detection
 - [OpenAI API Best Practices](https://platform.openai.com/docs/guides/safety-best-practices)
 
